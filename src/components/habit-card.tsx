@@ -1,0 +1,47 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+interface HabitCardProps {
+    name: string;
+    dailyCost: number;
+    frequency?: string;
+    onSkip: () => void;
+    isLoading?: boolean;
+}
+
+export function HabitCard({
+    name,
+    dailyCost,
+    frequency = "daily",
+    onSkip,
+    isLoading = false,
+}: HabitCardProps) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+        >
+            <Card className="border-border bg-card/50 backdrop-blur">
+                <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex flex-col gap-1">
+                        <h3 className="font-semibold text-foreground">{name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                            ₹{dailyCost.toLocaleString()} / {frequency}
+                        </p>
+                    </div>
+                    <Button
+                        onClick={onSkip}
+                        disabled={isLoading}
+                        className="bg-emerald-500 text-white hover:bg-emerald-600"
+                    >
+                        {isLoading ? "..." : "✓ Skipped Today"}
+                    </Button>
+                </CardContent>
+            </Card>
+        </motion.div>
+    );
+}

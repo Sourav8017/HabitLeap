@@ -1,167 +1,189 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useHabitStore } from "@/lib/store";
-import { GoalCard } from "@/components/goal-card";
+import { HabitCard } from "@/components/habit-card";
+import { RewardTracker } from "@/components/reward-tracker";
 import { Button } from "@/components/ui/button";
+import { BottomNav } from "@/components/bottom-nav";
+import { useConfetti } from "@/hooks/use-confetti";
 import Link from "next/link";
 
 export default function Dashboard() {
-    const { draftHabitName, draftHabitCost, draftRewardName, draftRewardPrice } =
-        useHabitStore();
+    const {
+        draftHabitName,
+        draftHabitCost,
+        draftRewardName,
+        draftRewardPrice,
+    } = useHabitStore();
 
-    // Calculate opportunity cost
-    const dailyCost = draftHabitCost || 150;
-    const rewardPrice = draftRewardPrice || 24900;
+    // Local state for saved amount (will connect to API later)
+    const [savedAmount, setSavedAmount] = useState(0);
+    const [isLogging, setIsLogging] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
+
+    // Use draft data or fallbacks
     const habitName = draftHabitName || "Coffee";
+    const dailyCost = draftHabitCost || 150;
     const rewardName = draftRewardName || "AirPods Pro";
+    const rewardPrice = draftRewardPrice || 24900;
 
-    const monthlyCost = dailyCost * 30;
+    // Calculate stats
     const annualCost = dailyCost * 365;
     const rewardsPerYear = annualCost / rewardPrice;
-    const monthsToReward = rewardPrice / monthlyCost;
-    const daysToReward = Math.ceil(rewardPrice / dailyCost);
+    const monthsToReward = rewardPrice / (dailyCost * 30);
+
+    const { fireConfetti } = useConfetti();
+
+    const handleSkip = async () => {
+        setIsLogging(true);
+        // Simulate API call (will connect to real API later)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const newSaved = savedAmount + dailyCost;
+        setSavedAmount(newSaved);
+
+        // Check if goal is complete
+        if (newSaved >= rewardPrice && savedAmount < rewardPrice) {
+            fireConfetti();
+            setShowCelebration(true);
+            setTimeout(() => setShowCelebration(false), 3000);
+        }
+
+        setIsLogging(false);
+    };
 
     // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.2 },
+            transition: { staggerChildren: 0.15 },
         },
     } as const;
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 30 },
+        hidden: { opacity: 0, y: 20 },
         visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.6, ease: "easeOut" as const },
-        },
-    };
-
-    const numberVariants = {
-        hidden: { scale: 0.5, opacity: 0 },
-        visible: {
-            scale: 1,
-            opacity: 1,
-            transition: { type: "spring" as const, stiffness: 100, delay: 0.3 },
+            transition: { duration: 0.4, ease: "easeOut" as const },
         },
     };
 
     return (
         <main className="dark min-h-screen bg-background">
             <motion.div
-                className="flex min-h-screen flex-col items-center justify-center gap-10 p-6 md:p-12"
+                className="mx-auto max-w-2xl p-6"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
                 {/* Header */}
-                <motion.div variants={itemVariants} className="text-center">
-                    <p className="text-sm uppercase tracking-widest text-muted-foreground">
-                        💡 Reality Check
+                <motion.header variants={itemVariants} className="mb-8 text-center">
+                    <h1 className="text-2xl font-bold text-foreground">HabitLeap</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Skip habits. Save money. Get rewards.
                     </p>
-                    <h1 className="mt-3 text-2xl font-bold text-foreground md:text-3xl">
-                        Your{" "}
-                        <span className="text-rose-500">{habitName}</span>{" "}
-                        habit is costing you
-                    </h1>
-                </motion.div>
+                </motion.header>
 
-                {/* The Shock Comparison */}
-                <motion.div
-                    variants={itemVariants}
-                    className="flex flex-col items-center gap-6 md:flex-row md:gap-10"
-                >
-                    {/* Cost Side (Red) */}
+                {/* Celebration overlay */}
+                {showCelebration && (
                     <motion.div
-                        variants={numberVariants}
-                        className="flex flex-col items-center rounded-3xl border-2 border-rose-500/40 bg-gradient-to-b from-rose-500/20 to-rose-500/5 px-10 py-8 shadow-2xl shadow-rose-500/10"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
                     >
-                        <span className="text-5xl font-black tabular-nums text-rose-500 md:text-6xl">
-                            ₹{annualCost.toLocaleString()}
-                        </span>
-                        <span className="mt-2 text-sm font-medium text-rose-400">
-                            per year
-                        </span>
-                        <span className="mt-1 text-xs text-muted-foreground">
-                            (₹{dailyCost}/day × 365)
-                        </span>
+                        <div className="text-center">
+                            <p className="text-6xl">🎉</p>
+                            <h2 className="mt-4 text-3xl font-bold text-emerald-500">
+                                Goal Unlocked!
+                            </h2>
+                            <p className="mt-2 text-xl text-foreground">
+                                You earned your {rewardName}!
+                            </p>
+                        </div>
                     </motion.div>
+                )}
 
-                    {/* Equals */}
-                    <motion.span
-                        variants={itemVariants}
-                        className="text-4xl font-black text-muted-foreground"
-                    >
-                        =
-                    </motion.span>
+                {/* The Shock Stats */}
+                <motion.section variants={itemVariants} className="mb-8">
+                    <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 text-center">
+                        <p className="text-sm uppercase tracking-widest text-muted-foreground">
+                            Your {habitName} habit costs you
+                        </p>
+                        <p className="mt-2 text-4xl font-black text-rose-500">
+                            ₹{annualCost.toLocaleString()}/year
+                        </p>
+                        <p className="mt-2 text-muted-foreground">
+                            That's <span className="font-bold text-foreground">{rewardsPerYear.toFixed(1)}x {rewardName}</span> every year!
+                        </p>
+                    </div>
+                </motion.section>
 
-                    {/* Reward Side (Green) */}
-                    <motion.div
-                        variants={numberVariants}
-                        className="flex flex-col items-center rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-b from-emerald-500/20 to-emerald-500/5 px-10 py-8 shadow-2xl shadow-emerald-500/10"
-                    >
-                        <span className="text-5xl font-black tabular-nums text-emerald-500 md:text-6xl">
-                            {rewardsPerYear.toFixed(1)}×
-                        </span>
-                        <span className="mt-2 text-sm font-medium text-emerald-400">
-                            {rewardName}
-                        </span>
-                        <span className="mt-1 text-xs text-muted-foreground">
-                            (₹{rewardPrice.toLocaleString()} each)
-                        </span>
-                    </motion.div>
-                </motion.div>
-
-                {/* Call to Action Message */}
-                <motion.div
-                    variants={itemVariants}
-                    className="max-w-lg text-center"
-                >
-                    <p className="text-lg text-muted-foreground md:text-xl">
-                        🎯 Stop now, and you can afford{" "}
-                        <span className="font-bold text-emerald-500">{rewardName}</span> in
-                        just{" "}
-                        <span className="font-bold text-foreground">
-                            {monthsToReward < 1
-                                ? `${daysToReward} days`
-                                : `${monthsToReward.toFixed(1)} months`}
-                        </span>
-                        .
-                    </p>
-                </motion.div>
-
-                {/* Goal Card Preview */}
-                <motion.div variants={itemVariants}>
-                    <GoalCard
-                        title={rewardName}
+                {/* Active Goal */}
+                <motion.section variants={itemVariants} className="mb-8">
+                    <RewardTracker
+                        name={rewardName}
                         price={rewardPrice}
-                        saved={0}
-                        variant="active"
+                        savedAmount={savedAmount}
                     />
-                </motion.div>
+                </motion.section>
 
-                {/* Actions */}
-                <motion.div
-                    variants={itemVariants}
-                    className="flex flex-col items-center gap-3"
-                >
-                    <Button
-                        size="lg"
-                        className="bg-emerald-500 px-8 text-lg font-semibold text-white hover:bg-emerald-600"
-                    >
-                        🚀 Start Saving for {rewardName}
-                    </Button>
-                    <Link
-                        href="/"
-                        className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                        ← Try different habit
+                {/* Habit to Skip */}
+                <motion.section variants={itemVariants} className="mb-8">
+                    <h2 className="mb-4 text-lg font-semibold text-foreground">
+                        Today's Habit
+                    </h2>
+                    <HabitCard
+                        name={habitName}
+                        dailyCost={dailyCost}
+                        onSkip={handleSkip}
+                        isLoading={isLogging}
+                    />
+                </motion.section>
+
+                {/* Quick Stats */}
+                <motion.section variants={itemVariants} className="mb-8">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-xl border border-border bg-card/50 p-4 text-center">
+                            <p className="text-2xl font-bold text-emerald-500">
+                                ₹{savedAmount.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Total Saved</p>
+                        </div>
+                        <div className="rounded-xl border border-border bg-card/50 p-4 text-center">
+                            <p className="text-2xl font-bold text-foreground">
+                                {Math.floor(savedAmount / dailyCost)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Skips Logged</p>
+                        </div>
+                    </div>
+                </motion.section>
+
+                {/* Time to Goal */}
+                <motion.section variants={itemVariants} className="mb-8 text-center">
+                    <p className="text-sm text-muted-foreground">
+                        Keep skipping and reach your goal in{" "}
+                        <span className="font-semibold text-emerald-500">
+                            {monthsToReward.toFixed(1)} months
+                        </span>
+                    </p>
+                </motion.section>
+
+                {/* Footer Actions */}
+                <motion.footer variants={itemVariants} className="flex flex-col items-center gap-3 pb-8">
+                    <Link href="/">
+                        <Button variant="outline" size="sm">
+                            ← Change Habit or Goal
+                        </Button>
                     </Link>
-                </motion.div>
+                </motion.footer>
             </motion.div>
+
+            <BottomNav />
         </main>
     );
 }
