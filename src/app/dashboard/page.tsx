@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useHabitStore } from "@/lib/store";
@@ -13,17 +13,20 @@ import { useConfetti } from "@/hooks/use-confetti";
 import Link from "next/link";
 
 export default function Dashboard() {
+    const { data: session } = useSession();
     const {
         draftHabitName,
         draftHabitCost,
         draftRewardName,
         draftRewardPrice,
+        savedAmount,
+        logSkip,
+        habits,
     } = useHabitStore();
 
-    // Local state for saved amount (will connect to API later)
-    const [savedAmount, setSavedAmount] = useState(0);
     const [isLogging, setIsLogging] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
+    const [todaySkipped, setTodaySkipped] = useState(false);
 
     // Use draft data or fallbacks
     const habitName = draftHabitName || "Coffee";
@@ -38,22 +41,72 @@ export default function Dashboard() {
 
     const { fireConfetti } = useConfetti();
 
-    const handleSkip = async () => {
-        setIsLogging(true);
-        // Simulate API call (will connect to real API later)
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const newSaved = savedAmount + dailyCost;
-        setSavedAmount(newSaved);
-
-        // Check if goal is complete
-        if (newSaved >= rewardPrice && savedAmount < rewardPrice) {
-            fireConfetti();
-            setShowCelebration(true);
-            setTimeout(() => setShowCelebration(false), 3000);
+    // Check if already skipped today (from localStorage for guests)
+    useEffect(() => {
+        const lastSkipDate = localStorage.getItem("habitleap-last-skip");
+        if (lastSkipDate === new Date().toDateString()) {
+            setTodaySkipped(true);
         }
+    }, []);
 
-        setIsLogging(false);
+    const handleSkip = async () => {
+        if (todaySkipped) return;
+
+        setIsLogging(true);
+
+        try {
+            // If logged in, call the API
+            if (session?.user) {
+                const habitId = habits[0]?.id; // Get first habit
+                if (habitId) {
+                    const response = await fetch("/api/log/skip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            habitId,
+                            userId: (session.user as { id?: string }).id,
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        if (error.alreadySkipped) {
+                            setTodaySkipped(true);
+                            setIsLogging(false);
+                            return;
+                        }
+                        throw new Error(error.error || "Failed to log skip");
+                    }
+                }
+            }
+
+            // Update local store (works for both guests and logged-in users)
+            const habitId = habits[0]?.id || "draft";
+            if (habits[0]) {
+                logSkip(habitId);
+            } else {
+                // For draft habits, manually update savedAmount
+                useHabitStore.setState((state) => ({
+                    savedAmount: state.savedAmount + dailyCost,
+                }));
+            }
+
+            // Mark as skipped today
+            localStorage.setItem("habitleap-last-skip", new Date().toDateString());
+            setTodaySkipped(true);
+
+            // Check if goal is complete
+            const newSaved = savedAmount + dailyCost;
+            if (newSaved >= rewardPrice && savedAmount < rewardPrice) {
+                fireConfetti();
+                setShowCelebration(true);
+                setTimeout(() => setShowCelebration(false), 3000);
+            }
+        } catch (error) {
+            console.error("Error logging skip:", error);
+        } finally {
+            setIsLogging(false);
+        }
     };
 
     // Animation variants
@@ -73,8 +126,6 @@ export default function Dashboard() {
             transition: { duration: 0.4, ease: "easeOut" as const },
         },
     };
-
-    const { data: session } = useSession();
 
     return (
         <main className="dark min-h-screen bg-background">
@@ -162,6 +213,7 @@ export default function Dashboard() {
                         dailyCost={dailyCost}
                         onSkip={handleSkip}
                         isLoading={isLogging}
+                        isSkipped={todaySkipped}
                     />
                 </motion.section>
 
@@ -194,7 +246,7 @@ export default function Dashboard() {
                 </motion.section>
 
                 {/* Footer Actions */}
-                <motion.footer variants={itemVariants} className="flex flex-col items-center gap-3 pb-8">
+                <motion.footer variants={itemVariants} className="flex flex-col items-center gap-3 pb-24">
                     <Link href="/">
                         <Button variant="outline" size="sm">
                             ← Change Habit or Goal

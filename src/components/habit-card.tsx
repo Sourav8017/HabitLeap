@@ -10,6 +10,7 @@ interface HabitCardProps {
     frequency?: string;
     onSkip: () => void;
     isLoading?: boolean;
+    isSkipped?: boolean;
 }
 
 export function HabitCard({
@@ -18,6 +19,7 @@ export function HabitCard({
     frequency = "daily",
     onSkip,
     isLoading = false,
+    isSkipped = false,
 }: HabitCardProps) {
     return (
         <motion.div
@@ -25,7 +27,7 @@ export function HabitCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
         >
-            <Card className="border-border bg-card/50 backdrop-blur">
+            <Card className={`border-border bg-card/50 backdrop-blur ${isSkipped ? "border-emerald-500/50" : ""}`}>
                 <CardContent className="flex items-center justify-between p-4">
                     <div className="flex flex-col gap-1">
                         <h3 className="font-semibold text-foreground">{name}</h3>
@@ -35,10 +37,14 @@ export function HabitCard({
                     </div>
                     <Button
                         onClick={onSkip}
-                        disabled={isLoading}
-                        className="bg-emerald-500 text-white hover:bg-emerald-600"
+                        disabled={isLoading || isSkipped}
+                        className={
+                            isSkipped
+                                ? "bg-emerald-500/20 text-emerald-500 cursor-default"
+                                : "bg-emerald-500 text-white hover:bg-emerald-600"
+                        }
                     >
-                        {isLoading ? "..." : "✓ Skipped Today"}
+                        {isLoading ? "..." : isSkipped ? "✓ Done Today" : "Skip Today →"}
                     </Button>
                 </CardContent>
             </Card>
