@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useHabitStore } from "@/lib/store";
 import { HabitCard } from "@/components/habit-card";
 import { RewardTracker } from "@/components/reward-tracker";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/bottom-nav";
+import { AuthStatus } from "@/components/auth-status";
 import { useConfetti } from "@/hooks/use-confetti";
 import Link from "next/link";
 
@@ -72,6 +74,8 @@ export default function Dashboard() {
         },
     };
 
+    const { data: session } = useSession();
+
     return (
         <main className="dark min-h-screen bg-background">
             <motion.div
@@ -81,11 +85,27 @@ export default function Dashboard() {
                 animate="visible"
             >
                 {/* Header */}
-                <motion.header variants={itemVariants} className="mb-8 text-center">
-                    <h1 className="text-2xl font-bold text-foreground">HabitLeap</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Skip habits. Save money. Get rewards.
-                    </p>
+                <motion.header variants={itemVariants} className="mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-foreground">HabitLeap</h1>
+                            <p className="text-sm text-muted-foreground">
+                                Skip habits. Save money. Get rewards.
+                            </p>
+                        </div>
+                        <AuthStatus />
+                    </div>
+
+                    {/* Save Progress CTA for guests */}
+                    {!session && savedAmount > 0 && (
+                        <Link href="/auth/signin" className="mt-4 block">
+                            <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-3 text-center transition-all hover:bg-emerald-500/20">
+                                <p className="text-sm font-medium text-emerald-500">
+                                    ☁️ Save your progress to the cloud
+                                </p>
+                            </div>
+                        </Link>
+                    )}
                 </motion.header>
 
                 {/* Celebration overlay */}
