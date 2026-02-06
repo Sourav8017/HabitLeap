@@ -7,6 +7,9 @@ export interface IHabit extends Document {
     frequency: "daily" | "weekly" | "monthly";
     category: "food" | "transport" | "digital" | "smoking" | "other";
     isActive: boolean;
+    // Gamification fields
+    streak: number;
+    lastSkippedAt: Date | null;
     createdAt: Date;
 }
 
@@ -26,6 +29,9 @@ const HabitSchema = new Schema<IHabit>(
             default: "other",
         },
         isActive: { type: Boolean, default: true },
+        // Gamification fields
+        streak: { type: Number, default: 0 },
+        lastSkippedAt: { type: Date, default: null },
     },
     { timestamps: true }
 );

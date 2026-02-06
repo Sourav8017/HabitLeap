@@ -25,6 +25,7 @@ export const updateRewardSchema = createRewardSchema.partial();
 export const logSkipSchema = z.object({
     habitId: z.string().min(1),
     rewardId: z.string().min(1).optional(),
+    userId: z.string().min(1).optional(),
 });
 
 // Sync data (guest to user)

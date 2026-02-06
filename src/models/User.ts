@@ -5,6 +5,11 @@ export interface IUser {
     name?: string;
     provider: "google" | "guest";
     currency: string;
+    // Gamification fields
+    level: number;
+    xp: number;
+    currentStreak: number;
+    longestStreak: number;
     createdAt?: Date;
 }
 
@@ -16,6 +21,11 @@ const UserSchema = new Schema<IUserDocument>(
         name: { type: String },
         provider: { type: String, enum: ["google", "guest"], default: "guest" },
         currency: { type: String, default: "INR" },
+        // Gamification fields
+        level: { type: Number, default: 1 },
+        xp: { type: Number, default: 0 },
+        currentStreak: { type: Number, default: 0 },
+        longestStreak: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

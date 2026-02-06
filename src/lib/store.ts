@@ -43,6 +43,10 @@ interface HabitState {
 
     // Actions for savings
     logSkip: (habitId: string) => void;
+
+    // Sync actions
+    hydrateFromServer: (data: { habits: Habit[]; rewards: Reward[]; savedAmount: number }) => void;
+    hasLocalData: () => boolean;
 }
 
 export const useHabitStore = create<HabitState>()(
@@ -104,6 +108,20 @@ export const useHabitStore = create<HabitState>()(
                         savedAmount: state.savedAmount + habit.costPerOccurrence,
                     }));
                 }
+            },
+
+            // Sync actions
+            hydrateFromServer: (data) => {
+                set({
+                    habits: data.habits,
+                    rewards: data.rewards,
+                    savedAmount: data.savedAmount,
+                });
+            },
+
+            hasLocalData: () => {
+                const state = get();
+                return state.habits.length > 0 || state.rewards.length > 0 || state.savedAmount > 0;
             },
         }),
         {
