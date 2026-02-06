@@ -10,6 +10,13 @@ export interface IUser {
     xp: number;
     currentStreak: number;
     longestStreak: number;
+    // Social fields
+    isPublic: boolean;
+    displayName?: string;
+    image?: string;
+    // Notification fields
+    pushSubscription?: string;
+    notificationsEnabled: boolean;
     createdAt?: Date;
 }
 
@@ -26,6 +33,13 @@ const UserSchema = new Schema<IUserDocument>(
         xp: { type: Number, default: 0 },
         currentStreak: { type: Number, default: 0 },
         longestStreak: { type: Number, default: 0 },
+        // Social fields
+        isPublic: { type: Boolean, default: true },
+        displayName: { type: String },
+        image: { type: String },
+        // Notification fields
+        pushSubscription: { type: String },
+        notificationsEnabled: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
