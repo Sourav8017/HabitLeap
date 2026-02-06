@@ -138,7 +138,7 @@ export default function Dashboard() {
                             ₹{annualCost.toLocaleString()}/year
                         </p>
                         <p className="mt-2 text-muted-foreground">
-                            That's <span className="font-bold text-foreground">{rewardsPerYear.toFixed(1)}x {rewardName}</span> every year!
+                            That&apos;s <span className="font-bold text-foreground">{rewardsPerYear.toFixed(1)}x {rewardName}</span> every year!
                         </p>
                     </div>
                 </motion.section>
@@ -155,7 +155,7 @@ export default function Dashboard() {
                 {/* Habit to Skip */}
                 <motion.section variants={itemVariants} className="mb-8">
                     <h2 className="mb-4 text-lg font-semibold text-foreground">
-                        Today's Habit
+                        Today&apos;s Habit
                     </h2>
                     <HabitCard
                         name={habitName}

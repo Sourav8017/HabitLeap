@@ -26,6 +26,10 @@ const PRESET_REWARDS: Omit<Reward, "_id" | "savedAmount" | "status">[] = [
     { name: "Bali Trip", price: 80000 },
 ];
 
+function generateId() {
+    return Math.random().toString(36).substring(2, 9);
+}
+
 export default function RewardsPage() {
     const { draftRewardName, draftRewardPrice } = useHabitStore();
 
@@ -52,7 +56,7 @@ export default function RewardsPage() {
 
     const handleAddPreset = (preset: typeof PRESET_REWARDS[0]) => {
         const newReward: Reward = {
-            _id: `preset-${Date.now()}-${preset.name}`,
+            _id: `preset-${generateId()}-${preset.name}`,
             name: preset.name,
             price: preset.price,
             savedAmount: 0,
@@ -68,7 +72,7 @@ export default function RewardsPage() {
         if (!newRewardName.trim() || !newRewardPrice) return;
 
         const newReward: Reward = {
-            _id: `custom-${Date.now()}`,
+            _id: `custom-${generateId()}`,
             name: newRewardName.trim(),
             price: parseFloat(newRewardPrice),
             savedAmount: 0,
@@ -115,7 +119,7 @@ export default function RewardsPage() {
                 <motion.header variants={itemVariants} className="mb-6">
                     <h1 className="text-2xl font-bold text-foreground">🏆 Reward Shop</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Choose what you're saving for
+                        Choose what you&apos;re saving for
                     </p>
                 </motion.header>
 

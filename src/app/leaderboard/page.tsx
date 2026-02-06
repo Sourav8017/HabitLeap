@@ -135,6 +135,7 @@ export default function LeaderboardPage() {
 
                                             {/* Avatar */}
                                             {user.image ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
                                                 <img
                                                     src={user.image}
                                                     alt={user.displayName}

@@ -54,7 +54,7 @@ self.addEventListener("notificationclick", function (event) {
     );
 });
 
-self.addEventListener("install", function (event) {
+self.addEventListener("install", function () {
     console.log("Service Worker installed");
     self.skipWaiting();
 });

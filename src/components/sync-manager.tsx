@@ -13,8 +13,8 @@ import { useHabitStore } from "@/lib/store";
  * - On app load (if already logged in): Fetch server data and hydrate store.
  */
 export function SyncManager() {
-    const { data: session, status } = useSession();
-    const { habits, rewards, savedAmount, hydrateFromServer, hasLocalData } = useHabitStore();
+    const { status } = useSession();
+    const { habits, rewards, hydrateFromServer, hasLocalData } = useHabitStore();
     const hasSynced = useRef(false);
     const hasFetched = useRef(false);
 
