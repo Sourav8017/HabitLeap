@@ -101,6 +101,13 @@ export function RewardInput({ onSubmit, onBack }: RewardInputProps) {
                         />
                     </div>
                     <button
+                        onClick={handleCustomSubmit}
+                        disabled={!customName.trim() || !customPrice || parseFloat(customPrice) <= 0}
+                        className="w-full rounded-lg bg-emerald-500 py-3 font-semibold text-white transition-all hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Save Reward →
+                    </button>
+                    <button
                         onClick={() => setShowCustom(false)}
                         className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
                     >

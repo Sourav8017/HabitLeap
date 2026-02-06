@@ -56,8 +56,15 @@ export function CostInput({ habitName, onSubmit, onBack }: CostInputProps) {
                         autoFocus
                     />
                 </div>
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                    Press Enter to continue
+                <button
+                    onClick={handleSubmit}
+                    disabled={!value || parseFloat(value) <= 0}
+                    className="mt-4 w-full rounded-lg bg-emerald-500 py-3 font-semibold text-white transition-all hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Continue →
+                </button>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                    or press Enter
                 </p>
             </div>
         </div>
