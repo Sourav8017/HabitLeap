@@ -18,18 +18,26 @@ interface Habit {
 }
 
 export default function HabitsPage() {
-    // Get draft habit from onboarding
-    const { draftHabitName, draftHabitCost, draftRewardName, draftRewardPrice } = useHabitStore();
+    // Get data from Zustand store
+    const { draftHabitName, draftHabitCost, draftRewardName, draftRewardPrice, savedAmount } = useHabitStore();
 
     // Local habits state (includes draft + any added)
     const [habits, setHabits] = useState<Habit[]>([]);
-    const [savedAmount, setSavedAmount] = useState(0);
     const [skippingId, setSkippingId] = useState<string | null>(null);
+    const [todaySkipped, setTodaySkipped] = useState(false);
 
     // Add habit form state
     const [showAddForm, setShowAddForm] = useState(false);
     const [newHabitName, setNewHabitName] = useState("");
     const [newHabitCost, setNewHabitCost] = useState("");
+
+    // Check if already skipped today
+    useEffect(() => {
+        const lastSkipDate = localStorage.getItem("habitleap-last-skip");
+        if (lastSkipDate === new Date().toDateString()) {
+            setTodaySkipped(true);
+        }
+    }, []);
 
     // Initialize with draft habit from onboarding
     useEffect(() => {
@@ -47,14 +55,18 @@ export default function HabitsPage() {
     }, [draftHabitName, draftHabitCost]);
 
     const handleSkip = async (habit: Habit) => {
+        if (todaySkipped) return;
         setSkippingId(habit._id);
 
         try {
-            // For now, simulate API call (will connect to real API when DB is configured)
-            await new Promise((resolve) => setTimeout(resolve, 400));
+            // Update Zustand store (which persists to localStorage)
+            useHabitStore.setState((state) => ({
+                savedAmount: state.savedAmount + habit.costPerOccurrence,
+            }));
 
-            // Update local saved amount
-            setSavedAmount((prev) => prev + habit.costPerOccurrence);
+            // Mark as skipped today
+            localStorage.setItem("habitleap-last-skip", new Date().toDateString());
+            setTodaySkipped(true);
         } catch (error) {
             console.error("Failed to log skip:", error);
         } finally {
@@ -123,7 +135,7 @@ export default function HabitsPage() {
                     <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">Saved Today</p>
+                                <p className="text-sm text-muted-foreground">Total Saved</p>
                                 <p className="text-2xl font-bold text-emerald-500">
                                     ₹{savedAmount.toLocaleString()}
                                 </p>
@@ -158,6 +170,7 @@ export default function HabitsPage() {
                                 frequency={habit.frequency}
                                 onSkip={() => handleSkip(habit)}
                                 isLoading={skippingId === habit._id}
+                                isSkipped={todaySkipped}
                             />
                         ))
                     )}

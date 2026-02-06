@@ -12,12 +12,11 @@ interface Reward {
     _id: string;
     name: string;
     price: number;
-    savedAmount: number;
     status: "locked" | "active" | "redeemed";
 }
 
 // Preset rewards for the "shop"
-const PRESET_REWARDS: Omit<Reward, "_id" | "savedAmount" | "status">[] = [
+const PRESET_REWARDS: Omit<Reward, "_id" | "status">[] = [
     { name: "Gaming Mouse", price: 4500 },
     { name: "AirPods Pro", price: 24900 },
     { name: "Nintendo Switch", price: 29990 },
@@ -31,7 +30,8 @@ function generateId() {
 }
 
 export default function RewardsPage() {
-    const { draftRewardName, draftRewardPrice } = useHabitStore();
+    // Get data from Zustand store (global savedAmount)
+    const { draftRewardName, draftRewardPrice, savedAmount } = useHabitStore();
 
     const [rewards, setRewards] = useState<Reward[]>([]);
     const [activeRewardId, setActiveRewardId] = useState<string | null>(null);
@@ -46,7 +46,6 @@ export default function RewardsPage() {
                 _id: "draft-reward-1",
                 name: draftRewardName,
                 price: draftRewardPrice,
-                savedAmount: 0,
                 status: "active",
             };
             setRewards([draftReward]);
@@ -59,7 +58,6 @@ export default function RewardsPage() {
             _id: `preset-${generateId()}-${preset.name}`,
             name: preset.name,
             price: preset.price,
-            savedAmount: 0,
             status: rewards.length === 0 ? "active" : "locked",
         };
         setRewards((prev) => [...prev, newReward]);
@@ -75,7 +73,6 @@ export default function RewardsPage() {
             _id: `custom-${generateId()}`,
             name: newRewardName.trim(),
             price: parseFloat(newRewardPrice),
-            savedAmount: 0,
             status: rewards.length === 0 ? "active" : "locked",
         };
         setRewards((prev) => [...prev, newReward]);
@@ -135,7 +132,7 @@ export default function RewardsPage() {
                                     key={reward._id}
                                     name={reward.name}
                                     price={reward.price}
-                                    savedAmount={reward.savedAmount}
+                                    savedAmount={reward._id === activeRewardId ? savedAmount : 0}
                                     isActive={reward._id === activeRewardId}
                                     onSelect={() => handleSetActive(reward._id)}
                                 />
